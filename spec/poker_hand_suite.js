@@ -1,16 +1,53 @@
 describe('PokerHand', function () {
 	
-	describe('deciding a winner',function(){
+	beforeEach(function() {
+	  	this.addMatchers({
+		    toBeat: function(lower) { return this.actual.score() > lower.score(); }
+		});
+	});
+	
+	describe('deciding a winner',function(){	
 		it("should evaluate high scores", function() {
-		  	var white = CardHand('2H 7D 5C 9S AK');
-			var black = CardHand('2H 7D 5C 9S QC');
-			expect(white.score()).toBeGreaterThan(black.score());
+			var low = CardHand('2H 7D 5C 9S QC');
+			var high = CardHand('2H 7D 5C 9S AC');
+			expect(high).toBeat(low);
 		});
 		
-		it("should evaluate pair scores", function() {
-		  	var white = CardHand('2H 2C 5S 9S QK')
-			var black = CardHand('2H 7D 5C 9S AC');
-			expect(white.score()).toBeGreaterThan(black.score());
+		describe("evaluating pair scores", function() {
+			
+			var pair;
+			beforeEach(function() {
+			  pair = CardHand('2H 2D 5C 9S AC');
+			});
+			
+			it("should evaluate a pair against a high", function() {
+				var high = CardHand('2H 7D 5C 9S AC');
+				expect(pair).toBeat(high);  
+			});
+			
+			it("should evaluate a pair against other pair", function() {
+			 	var pairOfTwo = CardHand('2H 2D 5C 9S AC');
+				var pairOfThree = CardHand('3H 3D 5C 9S AC');
+				expect(pairOfThree).toBeat(pairOfTwo);
+			});
+		});
+		
+		describe("evaluating two pair scores", function() {
+		  	var doublePair;
+			
+			beforeEach(function() {
+				doublePair = CardHand('3D 3H 5D 5C AS');
+			});
+			
+			it("should evaluate a two pair against a pair", function() {
+				var pair = CardHand('5H 5S 2C KD AH');
+				expect(doublePair).toBeat(pair);
+		  	});
+			
+			it("should evaluate a two pairs against other two pairs", function() {
+				var biggerDoublePair = CardHand('4H 4S 5S 5C AS');
+				expect(biggerDoublePair).toBeat(doublePair);
+			});
 		});
 	});
 	

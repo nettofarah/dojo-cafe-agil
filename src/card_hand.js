@@ -3,6 +3,7 @@ var CardHand = function(raw_cards){
 	var cards = [];
 	
 	var MAX_HIGH = 14;
+	var MAX_PAIR = MAX_HIGH * 2;
 	
 	var parse = function(){
 		var splited_cards = raw_cards.split(' ');
@@ -40,9 +41,26 @@ var CardHand = function(raw_cards){
 		return 0;
 	}
 	
+	var twoPairs = function(){
+		var pairs = [];
+		for (var i=0; i<cards.length; i++){
+			for(var j=i+1; j<cards.length; j++){
+				if(cards[i].number_value == cards[j].number_value)
+					pairs.push(cards[i].number_value)
+			}
+		}
+		return pairs;
+	}
+	
 	api.score = function(){
+		var pairs = twoPairs();
+		if(pairs.length > 1){
+			return pairs[0] + pairs[1] + MAX_PAIR;
+		}
+		
 		var pair_value = pair();
 		if (pair_value != 0) return pair_value + MAX_HIGH;
+		
 		return high();
 	}
 	
@@ -74,3 +92,4 @@ var Card = function(value, suit){
 		number_value : number_value()
 	}
 }
+
