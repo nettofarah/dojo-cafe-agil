@@ -1,4 +1,4 @@
-var CardHand = function(raw_cards){
+var CardHand = function(raw_cards, rules){
 	var api = {};
 	var cards = [];
 	
@@ -22,46 +22,8 @@ var CardHand = function(raw_cards){
 	
 	parse();
 	
-	var high = function(){
-		var higher = cards[0];
-		for(c in cards){
-			if (cards[c].number_value > higher.number_value){
-				higher = cards[c];
-			}
-		}
-		return higher.number_value;
-	}
-	
-	var pair = function(){
-		for(var i=0; i<cards.length; i++){
-			for(var j=i+1; j<cards.length; j++){
-				if (cards[i].number_value == cards[j].number_value) return cards[i].number_value;
-			}
-		}
-		return 0;
-	}
-	
-	var twoPairs = function(){
-		var pairs = [];
-		for (var i=0; i<cards.length; i++){
-			for(var j=i+1; j<cards.length; j++){
-				if(cards[i].number_value == cards[j].number_value)
-					pairs.push(cards[i].number_value)
-			}
-		}
-		return pairs;
-	}
-	
 	api.score = function(){
-		var pairs = twoPairs();
-		if(pairs.length > 1){
-			return pairs[0] + pairs[1] + MAX_PAIR;
-		}
-		
-		var pair_value = pair();
-		if (pair_value != 0) return pair_value + MAX_HIGH;
-		
-		return high();
+		return rules.score(cards);
 	}
 	
 	api.cards = function(){
@@ -93,3 +55,67 @@ var Card = function(value, suit){
 	}
 }
 
+var HighRule = function(){
+	var api = {};
+	api.MAX_VALUE = 14;
+	
+	api.score = function(cards){
+		var higher = cards[0];
+		for(c in cards){
+			if (cards[c].number_value > higher.number_value){
+				higher = cards[c];
+			}
+		}
+		return higher.number_value;
+	}
+	
+	return api;
+}
+
+var PairRule = function(nextRule){
+	var api = {};
+	api.MAX_VALUE = nextRule.MAX_VALUE * 2;
+			
+	var findPairs = function(cards){
+		for(var i=0; i<cards.length; i++){
+			for(var j=i+1; j<cards.length; j++){
+				if (cards[i].number_value == cards[j].number_value) return cards[i].number_value;
+			}
+		}
+		return 0;
+	}
+	
+	api.score = function(cards){
+		var pair_value = findPairs(cards);
+		if (pair_value > 0)	return pair_value + nextRule.MAX_VALUE;
+		return nextRule.score(cards);
+	}
+		
+	return api;	
+}
+
+var TwoPairsRule = function(nextRule){
+	var api = {};
+	api.MAX_VALUE = nextRule.MAX_VALUE * 2;
+	
+	var twoPairs = function(cards){
+		var pairs = [];
+		for (var i=0; i<cards.length; i++){
+			for(var j=i+1; j<cards.length; j++){
+				if(cards[i].number_value == cards[j].number_value)
+					pairs.push(cards[i].number_value)
+			}
+		}
+		return pairs;
+	}
+	
+	api.score = function(cards){
+		var pairs = twoPairs(cards);
+		if(pairs.length > 1){
+			return pairs[0] + pairs[1] + nextRule.MAX_VALUE;
+		}
+		return nextRule.score(cards);
+	}
+	
+	return api;
+}
